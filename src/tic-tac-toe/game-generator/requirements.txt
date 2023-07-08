@@ -1,0 +1,6 @@
+pip==23.0.1
+setuptools==67.6.1
+wheel==0.40.0
+numpy==1.24.2
+behave==1.2.6
+Cython==0.29.34

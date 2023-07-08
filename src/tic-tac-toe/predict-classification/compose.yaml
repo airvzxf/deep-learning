@@ -1,0 +1,25 @@
+services:
+  tensorflow:
+    build:
+      context: .
+      args:
+        UID: 1000
+        GID: 985
+    volumes:
+      - .:/home/generic-user/code
+    command:
+      - /bin/bash
+      - -c
+      - |
+        cd /home/generic-user/code
+        id
+        python -c 'import tensorflow as tf;tf.test.gpu_device_name();exit()';
+        python3 main.py
+        #while true; do true; sleep 1; done
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: [ '0', ]
+              capabilities: [ gpu ]
