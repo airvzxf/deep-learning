@@ -1,6 +1,8 @@
 tuner-models.log
 keras-tuner-trials/
 resources/
+smoke-test-output/
+*.csv
 
 ### Intellij template
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider

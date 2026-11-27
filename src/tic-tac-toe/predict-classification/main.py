@@ -179,7 +179,7 @@ if __name__ == '__main__':
     learning_rate: float = 0.001
     ams_grad: bool = False
     epochs: int = 2
-    best_model_directory = 'keras-tuner-trials/best-model'
+    best_model_directory = 'keras-tuner-trials/best-model.keras'
     # data_without_players_production: DataFrame = data_for_train_model.drop(columns=player_column_ids)
     # model_best: ModelBest = ModelBest(data_without_players_production, best_model_directory,
     #                                   output_feature, epochs, batch_size, units, layers,

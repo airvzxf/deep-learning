@@ -1,0 +1,44 @@
+name: Predict classification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/tic-tac-toe/predict-classification/**'
+      - 'src/tic-tac-toe/game-generator/**'
+      - '.github/workflows/predict-classification.yml'
+  pull_request:
+    paths:
+      - 'src/tic-tac-toe/predict-classification/**'
+      - 'src/tic-tac-toe/game-generator/**'
+      - '.github/workflows/predict-classification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: src/tic-tac-toe/predict-classification
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: src/tic-tac-toe/predict-classification/requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Import every module
+        run: python -c "import core.chronometer, core.csv_trials, core.graphic_information, core.keras_tuner_hyper, core.model_best, core.model_best_evaluation, core.model_quick_review, core.split_data, core.text_information"
+      - name: Generate every game
+        working-directory: src/tic-tac-toe/game-generator
+        run: |
+          pip install -r requirements.txt
+          python main.py --exhaustive -f ../predict-classification/all-games.csv
+      - name: Train, save, load and evaluate
+        run: python smoke_test.py all-games.csv

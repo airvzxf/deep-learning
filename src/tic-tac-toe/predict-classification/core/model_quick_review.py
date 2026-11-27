@@ -3,16 +3,15 @@
 """
 Execute a quick deep learning model to review the tendencies.
 """
+from keras import Input, Sequential
+from keras.activations import relu, softmax
+from keras.callbacks import History
+from keras.layers import Dense
+from keras.losses import CategoricalCrossentropy
+from keras.metrics import CategoricalAccuracy, Precision
+from keras.optimizers import Adam
 from numpy import ndarray
 from pandas import DataFrame
-from tensorflow.python.keras.activations import softmax
-from tensorflow.python.keras.backend import relu
-from tensorflow.python.keras.callbacks import History
-from tensorflow.python.keras.layers import Dense
-from tensorflow.python.keras.losses import categorical_crossentropy
-from tensorflow.python.keras.metrics import Precision, accuracy
-from tensorflow.python.keras.models import Sequential
-from tensorflow.python.keras.optimizer_v2.adam import Adam
 
 from core.graphic_information import GraphicInformation
 from core.split_data import SplitData
@@ -75,15 +74,16 @@ class ModelQuickReview:
         :rtype: None
         """
         self.__model = Sequential()
-        self.__model.add(Dense(512, activation=relu, input_shape=self.__train_set_x.shape[1:]))
+        self.__model.add(Input(shape=self.__train_set_x.shape[1:]))
+        self.__model.add(Dense(512, activation=relu))
         self.__model.add(Dense(512, activation=relu))
         self.__model.add(Dense(self.__train_set_y.shape[1], activation=softmax))
         self.__model.compile(
             optimizer=Adam(),
-            loss=categorical_crossentropy,
-            metrics=[accuracy, Precision()]
+            loss=CategoricalCrossentropy(),
+            metrics=[CategoricalAccuracy(name='accuracy'), Precision(name='precision')],
         )
-        print(self.__model.summary())
+        self.__model.summary()
 
         self.__history = self.__model.fit(
             self.__train_set_x,
@@ -104,8 +104,7 @@ class ModelQuickReview:
                                                   x_label='Epochs', y_label='Loss')
         graphic_for_quick_model.get_history_model(self.__history, filters=['accuracy', 'val_accuracy'],
                                                   x_label='Epochs', y_label='Accuracy')
-        precision = [i for i in self.__history.history.keys() if i.startswith("precision")][0]
-        graphic_for_quick_model.get_history_model(self.__history, filters=[precision, f'val_{precision}'],
+        graphic_for_quick_model.get_history_model(self.__history, filters=['precision', 'val_precision'],
                                                   x_label='Epochs', y_label='Precision')
         graphic_for_quick_model.show()
 
@@ -115,10 +114,9 @@ class ModelQuickReview:
 
         :rtype: None
         """
-        error_evaluation, accuracy_evaluation, \
-            precision_evaluation = self.__model.evaluate(self.__test_set_x, self.__test_set_y)
+        evaluation: dict = self.__model.evaluate(self.__test_set_x, self.__test_set_y, return_dict=True)
         print()
         print('Evaluate the model with the test data.')
-        print(f'Error Raw: {error_evaluation:,.2g}')
-        print(f'Accuracy: {accuracy_evaluation:,.2g}')
-        print(f'Precision: {precision_evaluation:,.2g}')
+        print(f'Error Raw: {evaluation["loss"]:,.2g}')
+        print(f'Accuracy: {evaluation["accuracy"]:,.2g}')
+        print(f'Precision: {evaluation["precision"]:,.2g}')

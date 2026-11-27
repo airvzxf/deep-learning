@@ -6,7 +6,7 @@ Graphic information with MatPlotLib.
 from matplotlib import pyplot as plt
 from pandas import DataFrame
 from pandas.plotting import scatter_matrix
-from tensorflow.python.keras.callbacks import History
+from keras.callbacks import History
 
 
 class GraphicInformation:

@@ -3,7 +3,7 @@
 """
 Load the model and evaluate it.
 """
-from keras import models, Sequential, callbacks, layers, activations, optimizers, losses, metrics
+from keras import models, Sequential
 from keras.utils import to_categorical
 from numpy import ndarray
 from pandas import DataFrame
@@ -58,12 +58,12 @@ class ModelBestEvaluation:
         print(self.__data_set_y)
 
     def evaluate(self):
-        evaluation = self.__best_model.evaluate(
+        evaluation: dict = self.__best_model.evaluate(
             self.__data_set_x,
             self.__data_set_y,
             verbose=2,
+            return_dict=True,
         )
-        index: int
-        metric_name: str
-        for index, metric_name in enumerate(self.__best_model.metrics_names):
-            print(f'{metric_name.replace("_", " ").capitalize()}: {evaluation[index]}')
+        for metric_name, value in evaluation.items():
+            print(f'{metric_name.replace("_", " ").capitalize()}: {value}')
+        return evaluation
