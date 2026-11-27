@@ -6,7 +6,7 @@ Split the data for the deep learning in three slices: training, validation and t
 from numpy import ndarray
 from pandas import DataFrame
 from sklearn.model_selection import train_test_split
-from tensorflow.python.keras.utils.np_utils import to_categorical
+from keras.utils import to_categorical
 
 from core.graphic_information import GraphicInformation
 

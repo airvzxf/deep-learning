@@ -3,7 +3,7 @@
 """
 Load the model with the best training.
 """
-from keras import models, Sequential, callbacks, layers, activations, optimizers, losses, metrics
+from keras import Input, models, Sequential, callbacks, layers, activations, optimizers, losses, metrics
 from keras.utils import to_categorical
 from numpy import ndarray
 from pandas import DataFrame
@@ -71,8 +71,8 @@ class ModelBest:
         self.__best_model: Sequential = models.Sequential()
 
         # Input layer
-        self.__best_model.add(layers.Dense(input_shape=self.__data_set_x.shape[1:],
-                                           units=self.__units, activation=activations.relu))
+        self.__best_model.add(Input(shape=self.__data_set_x.shape[1:]))
+        self.__best_model.add(layers.Dense(units=self.__units, activation=activations.relu))
         # Hidden layers
         for _ in range(self.__layers - 1):
             self.__best_model.add(layers.Dense(units=self.__units, activation=activations.relu))
@@ -87,7 +87,6 @@ class ModelBest:
             ),
             loss=losses.CategoricalCrossentropy(),
             metrics=[
-                metrics.Accuracy(),
                 metrics.CategoricalAccuracy(),
                 metrics.TopKCategoricalAccuracy(),
                 metrics.CategoricalCrossentropy(),
@@ -110,16 +109,16 @@ class ModelBest:
         )
 
     def evaluate(self):
-        evaluation = self.__best_model.evaluate(
+        evaluation: dict = self.__best_model.evaluate(
             self.__data_set_x,
             self.__data_set_y,
             batch_size=self.__batch_size,
             verbose=2,
+            return_dict=True,
         )
-        index: int
-        metric_name: str
-        for index, metric_name in enumerate(self.__best_model.metrics_names):
-            print(f'{metric_name.replace("_", " ").capitalize()}: {evaluation[index]}')
+        for metric_name, value in evaluation.items():
+            print(f'{metric_name.replace("_", " ").capitalize()}: {value}')
+        return evaluation
 
     def save(self):
         print('=== Save ===')

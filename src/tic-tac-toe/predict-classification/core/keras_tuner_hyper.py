@@ -12,7 +12,7 @@ from keras import losses
 from keras import metrics
 from keras import layers
 from keras import optimizers
-from keras_tuner import HyperModel, Hyperband, Objective, HyperParameters, HyperParameter
+from keras_tuner import HyperModel, Hyperband, Objective, HyperParameters
 from numpy import ndarray
 from pandas import DataFrame
 
@@ -57,7 +57,6 @@ class GeneralHyperModel(HyperModel):
             ),
             loss=losses.CategoricalCrossentropy(),
             metrics=[
-                metrics.Accuracy(),
                 metrics.CategoricalAccuracy(),
                 # metrics.TopKCategoricalAccuracy(),
                 metrics.CategoricalCrossentropy(),
@@ -146,8 +145,6 @@ class KerasTunerHyper:
 
     def search(self):
         tuner_logs_search_directory: str = f'{self.tuner_directory}/logs-search'
-        # max_collisions: int = self.__max_epochs * 10
-
         self.__tuner = Hyperband(
             GeneralHyperModel(
                 output_layer_units=self.__train_set_y.shape[1]
@@ -159,11 +156,16 @@ class KerasTunerHyper:
                 # Objective('val_top_k_categorical_accuracy', direction='max'),
                 # Objective('val_precision', direction='max'),
             ],
+            max_epochs=self.__max_epochs,
             seed=42,
             overwrite=True,
             directory=self.tuner_directory,
             project_name='PredictClassification',
         )
+        # The search space is small (36 combinations), so the oracle often draws a
+        # combination it already tried. keras-tuner stops after 20 such collisions
+        # and has no public argument to raise that limit.
+        self.__tuner.oracle._max_collisions = 1_000_000
         print(f'tuner.tuner_id: {self.__tuner.tuner_id}')
 
         self.__tuner.search(
@@ -178,7 +180,7 @@ class KerasTunerHyper:
         print('--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---')
         print('# Get the best results')
         bests_hp: list = self.__tuner.get_best_hyperparameters(num_trials=100000000)
-        best_hp: HyperParameter
+        best_hp: HyperParameters
         for index, best_hp in enumerate(bests_hp):
             print(f'best_hp #{index}: {best_hp.values}')
         print('--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---')

@@ -1,14 +1,9 @@
-pip==23.1.2
-setuptools==67.7.2
-wheel==0.40.0
-# Tensorflow and other package replace the numpy package for <1.24, for this reason I commented numpy.
-# numpy==1.24.2
-# numpy==1.23.5
-pandas==2.0.1
-matplotlib==3.7.1
-scikit-learn==1.2.2
-# tensorflow==2.12.0
-tensorflow-cpu==2.12.0
-# intel-tensorflow==2.12.0
-keras==2.12.0
-keras-tuner==1.3.5
+# TensorFlow is the Keras 3 backend; the CPU wheel also runs on GPU machines
+# when CUDA libraries are present (see the Dockerfile for the GPU image).
+tensorflow>=2.20
+keras>=3.10
+keras-tuner>=1.4.7
+tensorboard>=2.20
+pandas>=2.2
+matplotlib>=3.9
+scikit-learn>=1.5
