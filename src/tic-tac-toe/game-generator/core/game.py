@@ -3,10 +3,33 @@
 """
 The main class for the game.
 """
-from numpy import random
+from typing import Optional, Sequence
 
-from core.file import File
+from random import choice
+
 from core.history import Record, History
+
+WINNING_LINES: tuple = (
+    (0, 1, 2), (3, 4, 5), (6, 7, 8),  # rows
+    (0, 3, 6), (1, 4, 7), (2, 5, 8),  # columns
+    (0, 4, 8), (2, 4, 6),  # diagonals
+)
+
+
+def has_won(grid: Sequence[int], player: int) -> bool:
+    """
+    Check if the player has three marks in a row, column or diagonal.
+
+    :type grid: Sequence[int]
+    :param grid: The nine cells of the grid, with the player ID or 0 if the cell is empty.
+
+    :type player: int
+    :param player: The player ID.
+
+    :rtype: bool
+    :return: True if the player won.
+    """
+    return any(all(grid[index] == player for index in line) for line in WINNING_LINES)
 
 
 class Game:
@@ -19,7 +42,6 @@ class Game:
     __turns: int
     __winner: int
     __history: History
-    __csv_file: File
 
     def __init__(self) -> None:
         """
@@ -38,9 +60,13 @@ class Game:
         self.__winner = 0
         self.__history = History()
 
-    def play(self) -> int:
+    def play(self, cells: Optional[Sequence[int]] = None) -> int:
         """
         Start to play the game.
+
+        :type cells: Optional[Sequence[int]]
+        :param cells: The cells (1 to 9) marked in each turn. If it is None, every turn picks a random
+        available cell. The game stops when a player wins, so the remaining cells are ignored.
 
         :rtype: int
         :return: Returns 0 if the game is drawn; 1 if won the player 1; 2 if won the player 2.
@@ -49,34 +75,14 @@ class Game:
 
         turn: int
         for turn in range(1, self.__turns + 1):
-            cell: int = random.choice(available_cells)
-            available_cell_index: int = available_cells.index(cell)
-            available_cells.pop(available_cell_index)
-            cell_index: int = cell - 1
+            cell: int = choice(available_cells) if cells is None else cells[turn - 1]
+            available_cells.remove(cell)
             player_id: int = self.__player_1 if turn % 2 else self.__player_2
-            self.__grid[cell_index]: int = player_id
-            record = Record(player=player_id, turn=turn, cell=cell)
-            self.__history.append(record)
+            self.__grid[cell - 1] = player_id
+            self.__history.append(Record(player=player_id, turn=turn, cell=cell))
 
-            if turn < 5:
-                continue
-
-            player: int
-            for player in [self.__player_1, self.__player_2]:
-                marks_to_win: list = [player, player, player]
-                row_1: bool = self.__grid[:3] == marks_to_win
-                row_2: bool = self.__grid[3:6] == marks_to_win
-                row_3: bool = self.__grid[6:9] == marks_to_win
-                column_1: bool = self.__grid[::3] == marks_to_win
-                column_2: bool = self.__grid[1::3] == marks_to_win
-                column_3: bool = self.__grid[2::3] == marks_to_win
-                cross_1: bool = self.__grid[::4] == marks_to_win
-                cross_2: bool = self.__grid[2:8:2] == marks_to_win
-                if row_1 or row_2 or row_3 or column_1 or column_2 or column_3 or cross_1 or cross_2:
-                    self.__winner: int = player
-                    break
-
-            if self.__winner:
+            if turn >= 5 and has_won(self.__grid, player_id):
+                self.__winner = player_id
                 break
 
         return self.__winner
@@ -176,31 +182,3 @@ class Game:
         information += f'{self.__winner}'
 
         return information
-
-    def store_information(self, filename: str, information: str, overwrite: bool = False) -> None:
-        """
-        Store the information into the CSV file.
-
-        :type filename: str
-        :param filename: The filename for the CSV file.
-
-        :type information: str
-        :param information: The text with the information which will be storage.
-
-        :type overwrite: bool
-        :param overwrite: If true, it will delete and create a new file for fist time.
-        Otherwise, it appends the information.
-
-        :rtype: None
-        """
-        if '__csv_file' not in self.__dict__:
-            self.__csv_file = File(filename)
-
-        if self.__csv_file.filename != filename:
-            self.__csv_file = File(filename)
-
-        if overwrite:
-            self.__csv_file.delete(delete_one_time=True)
-
-        self.__csv_file.create()
-        self.__csv_file.append(information + '\n')

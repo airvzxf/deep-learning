@@ -1,5 +1,5 @@
 Feature: Play a game with not random
-  It will play a game, but the values for each turn will be mocked related with the test list.
+  It will play a game with the cells of each turn given by the test list.
 
   Scenario Outline: Play with mock
     Given I want to run a new game

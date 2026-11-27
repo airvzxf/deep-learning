@@ -3,30 +3,39 @@
 """
 Start the loop of the Tic Tac Toe games.
 """
+from typing import Iterable, Optional
+
+from core.exhaustive import all_games
 from core.game import Game
 
 
-def start(number_games: int, csv_filename: str) -> None:
+def start(number_games: int, csv_filename: str, exhaustive: bool = False) -> int:
     """
-    Start the loop of the games.
+    Play the games and store one CSV row for each one.
 
     :type number_games: int
-    :param number_games: Number of loops which repeat the game.
+    :param number_games: Number of random games. It is ignored when `exhaustive` is true.
 
     :type csv_filename: str
-    :param csv_filename: The path and filename where the information will be storage.
+    :param csv_filename: The path and filename where the information will be stored.
+    The file is overwritten.
 
-    :rtype: None
+    :type exhaustive: bool
+    :param exhaustive: If true, it stores every possible game once instead of random games.
+
+    :rtype: int
+    :return: The number of stored games.
     """
-    first_loop = True
-    for _ in range(number_games):
-        game = Game()
-        game.play()
+    games: Iterable[Optional[tuple]] = all_games() if exhaustive else (None for _ in range(number_games))
 
-        if first_loop:
-            headers = game.get_headers_to_store()
-            game.store_information(csv_filename, information=headers, overwrite=True)
-            first_loop = False
+    total: int = 0
+    with open(csv_filename, 'w', encoding='utf-8') as csv_file:
+        csv_file.write(Game.get_headers_to_store() + '\n')
+        cells: Optional[tuple]
+        for cells in games:
+            game = Game()
+            game.play(cells)
+            csv_file.write(game.get_information_to_store() + '\n')
+            total += 1
 
-        information = game.get_information_to_store()
-        game.store_information(csv_filename, information=information)
+    return total

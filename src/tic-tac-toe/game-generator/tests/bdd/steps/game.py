@@ -3,12 +3,13 @@
 """
 Steps for the game feature using BDD tests.
 """
+from collections import Counter
 from json import loads
 from unittest import TestCase
-from unittest.mock import patch
 
-from behave import *
+from behave import given, step, then, use_step_matcher, when
 
+from core.exhaustive import all_games
 from core.game import Game
 
 use_step_matcher("re")
@@ -38,9 +39,7 @@ def step_impl(context):
     """
     :type context: behave.runner.Context
     """
-    with patch('core.game.random.choice') as mock_random_choice:
-        mock_random_choice.side_effect = context.turn_cells
-        context.game.play()
+    context.game.play(getattr(context, 'turn_cells', None))
 
 
 @then("I got the results for the game")
@@ -88,3 +87,36 @@ def step_impl(context, returned_grid):
         context.game.grid,
         f'Expected {returned_grid}, got {context.game.grid}'
     )
+
+
+@when("I enumerate every possible game")
+def step_impl(context):
+    """
+    :type context: behave.runner.Context
+    """
+    context.winners = Counter()
+    context.unique_games = set()
+    for cells in all_games():
+        game = Game()
+        context.winners[game.play(cells)] += 1
+        context.unique_games.add(cells)
+
+
+@then("I got (?P<total>\\d+) different games")
+def step_impl(context, total):
+    """
+    :type context: behave.runner.Context
+    :type total: str
+    """
+    test_case.assertEqual(int(total), sum(context.winners.values()))
+    test_case.assertEqual(int(total), len(context.unique_games))
+
+
+@step("(?P<count>\\d+) games with the winner (?P<winner>\\d)")
+def step_impl(context, count, winner):
+    """
+    :type context: behave.runner.Context
+    :type count: str
+    :type winner: str
+    """
+    test_case.assertEqual(int(count), context.winners[int(winner)])
