@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/tic-tac-toe/game-generator
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: BDD tests
+        run: behave tests/bdd
+      - name: Generate every game
+        run: |
+          python main.py --exhaustive -f tic-tac-toe-all-games.csv
+          test "$(wc -l < tic-tac-toe-all-games.csv)" -eq 255169
+          gzip -k -9 tic-tac-toe-all-games.csv
+          sha256sum tic-tac-toe-all-games.csv tic-tac-toe-all-games.csv.gz > SHA256SUMS
+      - name: Publish the release
+        uses: softprops/action-gh-release@v3
+        with:
+          generate_release_notes: true
+          files: |
+            src/tic-tac-toe/game-generator/tic-tac-toe-all-games.csv
+            src/tic-tac-toe/game-generator/tic-tac-toe-all-games.csv.gz
+            src/tic-tac-toe/game-generator/SHA256SUMS

@@ -43,3 +43,7 @@ The best configuration found by the tuner (4 dense layers of 1,024 ReLU units, A
 
 * One million random games cover about 95% of the distinct games, so most of the "production" games were already in the training data. That set measured memorization more than generalization. The exhaustive generator lets you evaluate on every possible game instead.
 * The softmax probability is never exactly 1, so the cross-entropy never reaches 0 even when every game is classified correctly (for example, accuracy 1.0 with a cross-entropy of 6.7e-8).
+
+### Dataset release
+
+Each `v*` tag publishes a GitHub release with every possible game as a CSV file (`tic-tac-toe-all-games.csv`, also gzipped) and its SHA-256 checksums, so you can download the dataset without running the generator.
